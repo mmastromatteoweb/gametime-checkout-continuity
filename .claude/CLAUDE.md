@@ -36,6 +36,7 @@ Read the relevant rule file before writing code in that area:
 - `rules/typescript.md` — shared types and code quality
 - `rules/monorepo.md` — workspace layout, package names, imports, dev-server orchestration
 - `rules/mobile.md` — deep-link route shape, platform styling, what's shared vs. forked
+- `rules/ui.md` — design-language tokens, decorative-input rule, per-state visual specs, countdown + QR placement
 - `rules/stubs.md` — payment, inventory, pricing stub interfaces
 - `rules/testing.md` — test runner, fixture conventions, mandatory scenarios
 
