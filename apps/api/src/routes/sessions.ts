@@ -87,6 +87,10 @@ export function sessionsRoutes(stubs: Stubs): Hono {
 			return c.json(cached.body as object, cached.status as 200 | 402 | 409 | 410);
 		}
 
+		// Read the body up front so all subsequent validation runs in one synchronous
+		// block — important for concurrent completion requests on the same session.
+		const body = (await c.req.json().catch(() => null)) as Partial<CompleteRequest> | null;
+
 		const livePrice = stubs.pricing.getPrice(session.listingId);
 		reconcileInPlace(session, livePrice);
 
@@ -105,8 +109,17 @@ export function sessionsRoutes(stubs: Stubs): Hono {
 				409,
 			);
 		}
+		if (session.state === 'payment_pending') {
+			const deadline = Date.now() + 5000;
+			while (session.state === 'payment_pending' && Date.now() < deadline) {
+				await new Promise((r) => setTimeout(r, 5));
+			}
+			return c.json(
+				err({ error: 'Already completed', reason: 'already_completed', current: session }),
+				409,
+			);
+		}
 
-		const body = (await c.req.json().catch(() => null)) as Partial<CompleteRequest> | null;
 		if (!body?.completionToken || body.completionToken !== session.completionToken) {
 			return c.json(err({ error: 'Invalid completion token', current: session }), 409);
 		}
