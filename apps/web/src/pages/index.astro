@@ -1,8 +1,8 @@
 ---
-import type { Placeholder } from '@checkout/types';
+import type { SessionState } from '@checkout/types';
 import { CLIENT_PLACEHOLDER } from '@checkout/client';
 
-const ok: Placeholder = { ok: true };
+const state: SessionState = 'active';
 ---
 
 <html lang="en">
@@ -13,7 +13,7 @@ const ok: Placeholder = { ok: true };
 	<body>
 		<main>
 			<h1>Checkout continuity scaffold</h1>
-			<p>types ok: {String(ok.ok)}</p>
+			<p>state: {state}</p>
 			<p>client ok: {String(CLIENT_PLACEHOLDER)}</p>
 		</main>
 	</body>
