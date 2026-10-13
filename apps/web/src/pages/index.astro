@@ -1,8 +1,9 @@
 ---
 import type { SessionState } from '@checkout/types';
-import { CLIENT_PLACEHOLDER } from '@checkout/client';
+import { newIdempotencyKey } from '@checkout/client';
 
 const state: SessionState = 'active';
+const sampleKey = newIdempotencyKey();
 ---
 
 <html lang="en">
@@ -14,7 +15,7 @@ const state: SessionState = 'active';
 		<main>
 			<h1>Checkout continuity scaffold</h1>
 			<p>state: {state}</p>
-			<p>client ok: {String(CLIENT_PLACEHOLDER)}</p>
+			<p>sample idempotency key: {sampleKey}</p>
 		</main>
 	</body>
 </html>
