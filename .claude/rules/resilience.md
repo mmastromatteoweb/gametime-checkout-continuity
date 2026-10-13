@@ -56,6 +56,8 @@ Every non-happy state needs an explicit, named UI. Do not fall through to a gene
 | `failed`          | Reason if known, otherwise "Something went wrong"         | Retry, or abandon                    |
 | offline / poll down | Banner over current state: "Reconnecting… hold valid for Xs" | Nothing — keep current UI usable |
 
+Visual specs — layout, color, copy, placement — are in `rules/ui.md`. This table defines what each state must contain; `ui.md` defines how it looks.
+
 ## Instrumentation
 
 Fire these events via a stubbed `track(event, props)`. They do not need a real sink; they need to exist and be documented in the README.
