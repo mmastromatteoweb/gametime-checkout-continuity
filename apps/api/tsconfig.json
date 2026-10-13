@@ -6,6 +6,5 @@
     "lib": ["ES2022"],
     "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "references": [{ "path": "../../packages/types" }]
+  "include": ["src/**/*"]
 }
