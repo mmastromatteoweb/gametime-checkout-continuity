@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import type {
 	ApiError,
 	CompleteRequest,
@@ -163,8 +162,4 @@ export function sessionsRoutes(stubs: Stubs): Hono {
 	r.all('/:id/complete', notAllowed);
 
 	return r;
-}
-
-export function newIdempotencyKey(): string {
-	return randomUUID();
 }
