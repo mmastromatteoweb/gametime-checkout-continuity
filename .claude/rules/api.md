@@ -135,7 +135,7 @@ Test harness. Lets scripted scenarios force a price change on a listing so depen
 
 - `200` → updated `Listing`
 
-Gate this behind `process.env.NODE_ENV !== 'production'` so it is not available in a hypothetical production build.
+Gate this behind `process.env.NODE_ENV !== 'production'`. The route is a test harness, not a feature.
 
 ## Error shape
 
