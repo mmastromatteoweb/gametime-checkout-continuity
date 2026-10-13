@@ -41,7 +41,7 @@ const delta = session.currentPrice - session.reservedPrice;
 			>
 				<p>
 					Price changed. Was <s class="opacity-70">{price(session.reservedPrice)}</s>, now
-					<strong class="text-emerald-300">{price(session.currentPrice)}</strong>
+					<strong class="text-brand">{price(session.currentPrice)}</strong>
 					{delta > 0 ? ` (+${price(delta)})` : null}.
 				</p>
 			</div>
@@ -65,7 +65,7 @@ const delta = session.currentPrice - session.reservedPrice;
 				<p class="text-xs text-neutral-500">All fees included · USD</p>
 			</div>
 			<p
-				class="text-3xl font-semibold tabular-nums text-emerald-300"
+				class="text-3xl font-semibold tabular-nums text-brand"
 				data-testid="current-price"
 			>
 				{price(session.currentPrice)}

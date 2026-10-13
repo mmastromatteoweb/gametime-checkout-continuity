@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+@theme {
+	--color-brand: #66fac8;
+}
+
 @layer base {
 	:root {
 		color-scheme: dark;

@@ -35,7 +35,7 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 				</p>
 				<a
 					href="/"
-					class="mt-6 rounded-full bg-emerald-300 px-5 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-emerald-200"
+					class="mt-6 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-neutral-950 hover:brightness-110"
 				>
 					Start over
 				</a>
@@ -67,7 +67,7 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 
 				<header class="mb-8 flex flex-wrap items-center justify-between gap-4">
 					<div class="flex items-center gap-3">
-						<span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-300 text-neutral-950 font-bold">
+						<span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand text-neutral-950 font-bold">
 							G
 						</span>
 						<span class="text-lg font-semibold">GameTime</span>
@@ -191,7 +191,7 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 								<button
 									type="button"
 									data-accept-price
-									class="w-full rounded-full bg-emerald-300 px-5 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-200 disabled:opacity-40"
+									class="w-full rounded-full bg-brand px-5 py-3 text-sm font-semibold text-neutral-950 hover:brightness-110 disabled:opacity-40"
 									hidden={session.state !== 'price_changed'}
 								>
 									Accept new price ({price(session.currentPrice)})
@@ -199,7 +199,7 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 								<button
 									type="button"
 									data-cta
-									class="w-full rounded-full bg-emerald-300 px-5 py-3.5 text-base font-semibold text-neutral-950 hover:bg-emerald-200 disabled:opacity-40 disabled:cursor-not-allowed"
+									class="w-full rounded-full bg-brand px-5 py-3.5 text-base font-semibold text-neutral-950 hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
 									disabled={session.state !== 'active'}
 								>
 									{
@@ -233,10 +233,10 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 						{
 							session.state === 'completed' && (
 								<section
-									class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6 text-center"
+									class="rounded-xl border border-brand/40 bg-brand/10 p-6 text-center"
 									aria-live="polite"
 								>
-									<p class="text-3xl font-semibold text-emerald-200">You're in.</p>
+									<p class="text-3xl font-semibold text-brand">You're in.</p>
 									<p class="mt-2 text-sm text-neutral-200">
 										{session.listing.eventName}
 									</p>
@@ -263,7 +263,7 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 									</p>
 									<a
 										href="/"
-										class="mt-5 inline-block rounded-full bg-emerald-300 px-5 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-emerald-200"
+										class="mt-5 inline-block rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-neutral-950 hover:brightness-110"
 									>
 										Start over
 									</a>
@@ -286,7 +286,7 @@ const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
 								href={`/m/checkout/${session.id}`}
 								target="_blank"
 								rel="noopener"
-								class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-300/10 px-5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-300/20"
+								class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand/20"
 							>
 								Open mobile view
 								<span aria-hidden="true">→</span>
