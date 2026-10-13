@@ -1,0 +1,20 @@
+---
+import type { Placeholder } from '@checkout/types';
+import { CLIENT_PLACEHOLDER } from '@checkout/client';
+
+const ok: Placeholder = { ok: true };
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Checkout Continuity</title>
+	</head>
+	<body>
+		<main>
+			<h1>Checkout continuity scaffold</h1>
+			<p>types ok: {String(ok.ok)}</p>
+			<p>client ok: {String(CLIENT_PLACEHOLDER)}</p>
+		</main>
+	</body>
+</html>
