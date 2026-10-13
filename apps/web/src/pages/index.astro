@@ -1,21 +1,130 @@
 ---
-import type { SessionState } from '@checkout/types';
-import { newIdempotencyKey } from '@checkout/client';
+import type { Listing } from '@checkout/types';
+import { HttpError } from '@checkout/client';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { serverApi } from '../lib/api.ts';
 
-const state: SessionState = 'active';
-const sampleKey = newIdempotencyKey();
+export const prerender = false;
+
+const DEFAULT_LISTING_ID = 'listing-123';
+
+if (Astro.request.method === 'POST') {
+	const session = await serverApi().createSession({
+		listingId: DEFAULT_LISTING_ID,
+		surface: 'web',
+	});
+	return Astro.redirect(`/checkout/${session.id}`);
+}
+
+let listing: Listing | null = null;
+let error: string | null = null;
+try {
+	listing = await serverApi().getListing(DEFAULT_LISTING_ID);
+} catch (err) {
+	error =
+		err instanceof HttpError
+			? `Listing fetch failed (HTTP ${err.status})`
+			: 'Could not reach the API. Is it running on port 3000?';
+}
+
+const price = (n: number) => `$${n.toFixed(2)}`;
+const eventDate = listing ? new Date(listing.eventStart) : null;
+const eventDateLabel = eventDate
+	? eventDate.toLocaleString('en-US', {
+			weekday: 'short',
+			month: 'short',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit',
+			timeZoneName: 'short',
+		})
+	: null;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<title>Checkout Continuity</title>
-	</head>
-	<body>
-		<main>
-			<h1>Checkout continuity scaffold</h1>
-			<p>state: {state}</p>
-			<p>sample idempotency key: {sampleKey}</p>
-		</main>
-	</body>
-</html>
+<BaseLayout title="GameTime">
+	<main class="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10">
+		<header class="flex items-center gap-3">
+			<span
+				class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand text-neutral-950 font-bold"
+			>
+				G
+			</span>
+			<span class="text-lg font-semibold">GameTime</span>
+		</header>
+
+		{
+			error ? (
+				<section class="mt-16 rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-100">
+					<p class="font-semibold">{error}</p>
+					<p class="mt-2 text-xs text-red-200/80">
+						Run <code class="rounded bg-neutral-900 px-1 py-0.5">pnpm dev</code> from the repo
+						root to start both the API and the web app.
+					</p>
+				</section>
+			) : (
+				listing && (
+					<section class="mt-10 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
+						<div class="h-32 bg-gradient-to-br from-brand/30 via-neutral-800 to-neutral-900" />
+						<div class="p-6 sm:p-8">
+							<p class="text-xs font-semibold uppercase tracking-wider text-brand">
+								Live event
+							</p>
+							<h1 class="mt-2 text-2xl font-semibold sm:text-3xl">{listing.eventName}</h1>
+							<p class="mt-1 text-sm text-neutral-400">{listing.venue}</p>
+							{eventDateLabel && (
+								<p class="mt-4 text-sm text-neutral-300">{eventDateLabel}</p>
+							)}
+
+							<div class="mt-6 grid grid-cols-3 gap-3 rounded-lg bg-neutral-950 p-4 text-center text-sm">
+								<span>
+									<span class="block text-[11px] uppercase tracking-wider text-neutral-500">
+										Section
+									</span>
+									<span class="font-semibold text-neutral-100">{listing.section}</span>
+								</span>
+								<span>
+									<span class="block text-[11px] uppercase tracking-wider text-neutral-500">
+										Row
+									</span>
+									<span class="font-semibold text-neutral-100">{listing.row}</span>
+								</span>
+								<span>
+									<span class="block text-[11px] uppercase tracking-wider text-neutral-500">
+										Seats
+									</span>
+									<span class="font-semibold text-neutral-100">{listing.quantity}</span>
+								</span>
+							</div>
+
+							<div class="mt-6 flex flex-wrap items-end justify-between gap-4 border-t border-neutral-800 pt-6">
+								<div>
+									<p class="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+										Total
+									</p>
+									<p class="text-3xl font-semibold tabular-nums text-brand">
+										{price(listing.currentPrice)}
+									</p>
+									<p class="text-xs text-neutral-500">All fees included · USD</p>
+								</div>
+								<form method="POST">
+									<button
+										type="submit"
+										class="rounded-full bg-brand px-7 py-3.5 text-base font-semibold text-neutral-950 hover:brightness-110"
+									>
+										Start checkout →
+									</button>
+								</form>
+							</div>
+						</div>
+					</section>
+				)
+			)
+		}
+
+		<p class="mt-8 text-xs text-neutral-500">
+			Clicking <strong>Start checkout</strong> creates a 10-minute hold and routes you to
+			<code class="text-neutral-400">/checkout/:id</code>. From there you can open the mobile
+			surface in a second tab to see cross-surface resume.
+		</p>
+	</main>
+</BaseLayout>
