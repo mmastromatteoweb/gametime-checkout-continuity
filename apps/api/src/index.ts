@@ -1,10 +1,9 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import type { SessionState } from '@checkout/types';
+import { seedDefault, stubs } from './stubs/index.js';
 
-const INITIAL_STATE: SessionState = 'active';
-void INITIAL_STATE;
+seedDefault(stubs.pricing);
 
 const app = new Hono();
 

@@ -22,7 +22,7 @@ Default stub:
 - 85% `ok`
 - 10% `declined` with `reason: 'card_declined'`
 - 5% `pending` (resolves to `ok` or `declined` on the next call to `/complete` with the same idempotency key — exercises the `payment_pending` → `completed` / `failed` transitions)
-- Deterministic with a seeded PRNG so scenario tests are reproducible. Export `setPaymentSeed(seed: number)` for tests.
+- Deterministic with a seeded PRNG so scenario tests are reproducible. The gateway exposes a `setSeed(seed: number)` method so tests can reset the RNG mid-run.
 
 ## InventorySource
 
