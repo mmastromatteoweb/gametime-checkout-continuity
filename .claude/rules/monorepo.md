@@ -58,8 +58,17 @@ Use the `workspace:*` protocol in every internal dependency:
 
 - One `tsconfig.base.json` at the root with `strict: true`, `moduleResolution: "bundler"`, `target: "ES2022"`.
 - Each package has its own `tsconfig.json` that extends the base and sets its `outDir` / `rootDir`.
-- Use TS project references so `tsc -b` builds packages in dependency order.
 - Packages export via `exports` field in `package.json`, not via `main` only — avoids subpath import pain.
+
+### Why no project references / composite
+
+`@checkout/types` and `@checkout/client` are **source-exported** — their `package.json` main/types/exports point at `./src/index.ts`, not at a built `./dist/*.d.ts`. This keeps dev friction low (changes propagate without a build step).
+
+Source-exported packages are incompatible with TypeScript project references, because `references` requires `composite: true` on the referenced project, and `composite: true` requires the referenced project to have been built. If you add `references` to `tsconfig.json`, you'll hit `TS6305` ("output file has not been built from source file") or `TS6306` ("referenced project must have setting composite: true").
+
+The tradeoff accepted here: no `tsc -b` incremental builds, no enforced dep-direction from TypeScript. Dep direction is enforced by convention and by what `package.json` dependencies declare. `pnpm -r --parallel typecheck` runs each project's typecheck in parallel and handles the dependency graph via pnpm's own topology.
+
+If this project ever needs a real production build pipeline, migrate `packages/*` to compiled packages: add a `build` script, point `exports` at `./dist`, re-add `composite: true` to the base and `references` to the per-package tsconfigs.
 
 ## Scripts
 
