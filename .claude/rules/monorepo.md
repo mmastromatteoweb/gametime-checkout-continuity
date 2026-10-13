@@ -66,9 +66,7 @@ Use the `workspace:*` protocol in every internal dependency:
 
 Source-exported packages are incompatible with TypeScript project references, because `references` requires `composite: true` on the referenced project, and `composite: true` requires the referenced project to have been built. If you add `references` to `tsconfig.json`, you'll hit `TS6305` ("output file has not been built from source file") or `TS6306` ("referenced project must have setting composite: true").
 
-The tradeoff accepted here: no `tsc -b` incremental builds, no enforced dep-direction from TypeScript. Dep direction is enforced by convention and by what `package.json` dependencies declare. `pnpm -r --parallel typecheck` runs each project's typecheck in parallel and handles the dependency graph via pnpm's own topology.
-
-If this project ever needs a real production build pipeline, migrate `packages/*` to compiled packages: add a `build` script, point `exports` at `./dist`, re-add `composite: true` to the base and `references` to the per-package tsconfigs.
+Dep direction is enforced by `package.json` dependencies and pnpm's workspace topology. `pnpm -r --parallel typecheck` handles the ordering.
 
 ## Scripts
 
@@ -104,7 +102,7 @@ import { cors } from 'hono/cors';
 app.use('*', cors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:4321', credentials: true }));
 ```
 
-Do not use `origin: '*'` with credentials — some fetch calls will send cookies in a future auth iteration.
+Do not use `origin: '*'` with `credentials: true` — the combination is rejected by browsers.
 
 ## What does not belong in the root
 
