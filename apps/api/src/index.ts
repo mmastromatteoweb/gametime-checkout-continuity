@@ -1,6 +1,10 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import type { SessionState } from '@checkout/types';
+
+const INITIAL_STATE: SessionState = 'active';
+void INITIAL_STATE;
 
 const app = new Hono();
 
