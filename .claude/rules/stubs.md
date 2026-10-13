@@ -68,11 +68,4 @@ Route handlers accept the stub bag as a dependency (either via Hono context or a
 
 ## Seeding
 
-`apps/api/src/stubs/seed.ts` seeds one listing and its price on boot so a developer can `curl` the API immediately after `pnpm dev`:
-
-```typescript
-inventory.add({ id: 'listing-123', ... });
-pricing.set('listing-123', 220);
-```
-
-Also exported as `seedDefault()` for scenario tests.
+`apps/api/src/stubs/seed.ts` seeds the listing shown in the design mock so the implementation matches on first boot. See `rules/ui.md` for the exact object shape and values. Also exported as `seedDefault()` for scenario tests.
