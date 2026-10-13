@@ -7,7 +7,7 @@ Checkout continuity prototype for Gametime. A fan starts checkout on one surface
 ## Stack
 
 - **Monorepo**: pnpm workspaces
-- **Web**: Astro (hybrid, `@astrojs/node` standalone) + Tailwind v4
+- **Web**: Astro 5 (`output: 'server'`, `@astrojs/node` standalone) + Tailwind v4 via `@tailwindcss/vite`. Every page is server-rendered; opt a page into static with `export const prerender = true` — none should in this app.
 - **API**: Hono (Node adapter)
 - **Mobile**: Simulated as a second Astro route (`/m/checkout/:id`) with mobile viewport and platform-appropriate copy. Native React Native is a stretch goal — the shared `@checkout/client` package exists specifically so a future RN screen imports it unchanged.
 - **Shared code**: `@checkout/types` (TypeScript interfaces), `@checkout/client` (framework-agnostic session client)
