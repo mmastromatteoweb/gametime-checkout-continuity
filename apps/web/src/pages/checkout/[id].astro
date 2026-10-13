@@ -1,0 +1,311 @@
+---
+import type { Session } from '@checkout/types';
+import { HttpError } from '@checkout/client';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { API_BASE_URL, serverApi } from '../../lib/api.ts';
+import OrderSummary from '../../components/OrderSummary.astro';
+import CountdownIsland from '../../components/CountdownIsland.astro';
+import CheckoutIsland from '../../components/CheckoutIsland.astro';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+let session: Session | null = null;
+let notFound = false;
+if (id) {
+	try {
+		session = await serverApi().getSession(id);
+	} catch (err) {
+		if (err instanceof HttpError && err.status === 404) notFound = true;
+		else throw err;
+	}
+}
+
+const price = (n: number) => `$${n.toFixed(2)}`;
+const mobileUrl = session ? `${Astro.url.origin}/m/checkout/${session.id}` : '';
+---
+
+<BaseLayout>
+	{
+		notFound || !session ? (
+			<main class="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 text-center">
+				<h1 class="text-2xl font-semibold">Session not found</h1>
+				<p class="mt-2 text-neutral-400">
+					We couldn't find that checkout. It may have expired or never existed.
+				</p>
+				<a
+					href="/"
+					class="mt-6 rounded-full bg-emerald-300 px-5 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-emerald-200"
+				>
+					Start over
+				</a>
+			</main>
+		) : (
+			<main
+				data-state-container
+				data-state={session.state}
+				class="mx-auto max-w-6xl px-6 py-10"
+			>
+				{/* Fixed-position stacked banners */}
+				<div
+					data-countdown-banner
+					class="fixed inset-x-0 top-0 z-20 border-b border-amber-500/40 bg-amber-500/15 px-6 py-3 text-center text-sm font-medium text-amber-100"
+					hidden
+				>
+					<span>Hurry — your hold expires in </span>
+					<span data-countdown-banner-value class="tabular-nums font-semibold">0:00</span>.
+				</div>
+				<div
+					data-degraded-banner
+					class="fixed inset-x-0 top-0 z-10 border-b border-neutral-700/60 bg-neutral-800/90 px-6 py-3 text-center text-sm text-neutral-200 backdrop-blur"
+					role="status"
+					aria-live="polite"
+					hidden
+				>
+					<p>Reconnecting… your hold is still valid.</p>
+				</div>
+
+				<header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+					<div class="flex items-center gap-3">
+						<span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-300 text-neutral-950 font-bold">
+							G
+						</span>
+						<span class="text-lg font-semibold">GameTime</span>
+					</div>
+					<CountdownIsland session={session} />
+				</header>
+
+				<div data-dimmable class="grid gap-6 md:grid-cols-12">
+					<div class="space-y-6 md:col-span-7">
+						<section
+							class="rounded-xl border border-neutral-800 bg-neutral-900 p-6"
+							aria-label="Contact"
+						>
+							<h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-400">
+								Ticket delivery
+							</h2>
+							<p class="mt-1 text-sm text-neutral-500">
+								Your passes and receipt will be delivered to the contact details below.
+							</p>
+							<form class="mt-5 grid gap-4 sm:grid-cols-2">
+								<label class="block">
+									<span class="block text-xs font-medium text-neutral-400">Email</span>
+									<input
+										type="email"
+										value="alex.morrison@example.com"
+										readonly
+										class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100"
+									/>
+								</label>
+								<label class="block">
+									<span class="block text-xs font-medium text-neutral-400">Mobile phone</span>
+									<input
+										type="tel"
+										value="+1 (555) 019-2834"
+										readonly
+										class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100"
+									/>
+								</label>
+							</form>
+						</section>
+
+						<section
+							class="rounded-xl border border-neutral-800 bg-neutral-900 p-6"
+							aria-label="Payment"
+						>
+							<h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-400">
+								Payment
+							</h2>
+							<form class="mt-5 space-y-4">
+								<label class="block">
+									<span class="block text-xs font-medium text-neutral-400">Cardholder name</span>
+									<input
+										type="text"
+										value="ALEXANDER J MORRISON"
+										readonly
+										class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100"
+									/>
+								</label>
+								<label class="block">
+									<span class="block text-xs font-medium text-neutral-400">Card number</span>
+									<input
+										type="text"
+										value="•••• •••• •••• 4092"
+										readonly
+										class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 tabular-nums"
+									/>
+								</label>
+								<div class="grid grid-cols-3 gap-3">
+									<label class="block">
+										<span class="block text-xs font-medium text-neutral-400">Expiration</span>
+										<input
+											type="text"
+											value="08/28"
+											readonly
+											class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 tabular-nums"
+										/>
+									</label>
+									<label class="block">
+										<span class="block text-xs font-medium text-neutral-400">CVC</span>
+										<input
+											type="text"
+											value="982"
+											readonly
+											class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 tabular-nums"
+										/>
+									</label>
+									<label class="block">
+										<span class="block text-xs font-medium text-neutral-400">ZIP</span>
+										<input
+											type="text"
+											value="94107"
+											readonly
+											class="mt-1 w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 tabular-nums"
+										/>
+									</label>
+								</div>
+							</form>
+						</section>
+					</div>
+
+					<div class="space-y-6 md:col-span-5">
+						<OrderSummary session={session} />
+
+						{
+							session.state === 'failed' && (
+								<div
+									class="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-100"
+									role="alert"
+								>
+									<p class="font-semibold">Payment couldn't go through.</p>
+									{session.lastError && <p class="mt-1 opacity-80">{session.lastError}</p>}
+								</div>
+							)
+						}
+
+						<section
+							class="rounded-xl border border-neutral-800 bg-neutral-900 p-6"
+							aria-label="Confirm"
+						>
+							<div class="space-y-3">
+								<button
+									type="button"
+									data-accept-price
+									class="w-full rounded-full bg-emerald-300 px-5 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-200 disabled:opacity-40"
+									hidden={session.state !== 'price_changed'}
+								>
+									Accept new price ({price(session.currentPrice)})
+								</button>
+								<button
+									type="button"
+									data-cta
+									class="w-full rounded-full bg-emerald-300 px-5 py-3.5 text-base font-semibold text-neutral-950 hover:bg-emerald-200 disabled:opacity-40 disabled:cursor-not-allowed"
+									disabled={session.state !== 'active'}
+								>
+									{
+										session.state === 'completed'
+											? 'Completed'
+											: session.state === 'payment_pending'
+												? 'Processing…'
+												: session.state === 'failed'
+													? 'Try again'
+													: session.state === 'expired'
+														? 'Hold expired'
+														: `Confirm & Pay ${price(session.currentPrice)}`
+									}
+								</button>
+								<p data-error-line role="alert" class="min-h-4 text-sm text-red-300">
+									{session.lastError ?? ''}
+								</p>
+								{
+									session.state === 'failed' && (
+										<a
+											href="#"
+											class="block text-center text-xs text-neutral-400 underline hover:text-neutral-200"
+										>
+											Use a different payment method
+										</a>
+									)
+								}
+							</div>
+						</section>
+
+						{
+							session.state === 'completed' && (
+								<section
+									class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6 text-center"
+									aria-live="polite"
+								>
+									<p class="text-3xl font-semibold text-emerald-200">You're in.</p>
+									<p class="mt-2 text-sm text-neutral-200">
+										{session.listing.eventName}
+									</p>
+									<p class="mt-1 text-sm text-neutral-400">
+										Section {session.listing.section} · Row {session.listing.row} · Qty{' '}
+										{session.listing.quantity}
+									</p>
+									<p class="mt-3 text-xs text-neutral-500">Order #{session.id.slice(0, 8)}</p>
+								</section>
+							)
+						}
+
+						{
+							session.state === 'expired' && (
+								<section
+									class="rounded-xl border border-neutral-700 bg-neutral-900 p-6 text-center"
+									aria-live="polite"
+								>
+									<p class="text-xl font-semibold text-neutral-100">Your hold expired.</p>
+									<p class="mt-2 text-sm text-neutral-400">
+										The seats you held for {session.listing.eventName} — Section{' '}
+										{session.listing.section} / Row {session.listing.row} — were released. Pricing
+										may have changed.
+									</p>
+									<a
+										href="/"
+										class="mt-5 inline-block rounded-full bg-emerald-300 px-5 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-emerald-200"
+									>
+										Start over
+									</a>
+								</section>
+							)
+						}
+
+						<section
+							class="rounded-xl border border-neutral-800 bg-neutral-900 p-6"
+							aria-label="Open mobile view"
+						>
+							<h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-400">
+								Continue on mobile
+							</h2>
+							<p class="mt-1 text-sm text-neutral-500">
+								Open the mobile view in a new tab. Both surfaces share this session —
+								state changes propagate across polls.
+							</p>
+							<a
+								href={`/m/checkout/${session.id}`}
+								target="_blank"
+								rel="noopener"
+								class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-300/10 px-5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-300/20"
+							>
+								Open mobile view
+								<span aria-hidden="true">→</span>
+							</a>
+							<button
+								type="button"
+								data-copy-link
+								data-mobile-url={mobileUrl}
+								class="mt-3 block w-full truncate rounded bg-neutral-950 p-3 text-left text-[11px] text-neutral-300 hover:text-neutral-100"
+								title="Click to copy"
+							>
+								{mobileUrl}
+							</button>
+						</section>
+					</div>
+				</div>
+
+				<CheckoutIsland session={session} apiBaseUrl={API_BASE_URL} />
+			</main>
+		)
+	}
+</BaseLayout>

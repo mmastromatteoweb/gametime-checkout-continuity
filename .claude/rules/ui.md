@@ -96,12 +96,12 @@ Each row below describes what replaces or overlays the `active` layout for that 
 
 ## Cross-surface handoff — missing from the mock
 
-Per `rules/mobile.md`, the web `/checkout/:id` must offer a way to open the session on a phone.
+Per `rules/mobile.md`, the web `/checkout/:id` must offer a way to open the session on the mobile surface.
 
-- **Placement (web)**: a small card in the right column, below the order summary / above the terms acceptance. Mobile view does not render this card.
-- **Content**: a QR code encoding `${origin}/m/checkout/${sessionId}` and a copyable text link below it.
-- **Label**: `Open on your phone` (header), `Scan or copy the link to resume on mobile.` (subtext).
-- QR generation: use a tiny inline library (e.g. `qrcode`) imported in the island, not server-side.
+- **Placement (web)**: a small card in the right column, below the order summary. Mobile view does not render this card.
+- **Content**: a prominent "Open mobile view" button that opens `/m/checkout/:id` in a new tab, plus a click-to-copy affordance showing the full URL.
+- **Label**: `Continue on mobile` (header), `Open the mobile view in a new tab. Both surfaces share this session — state changes propagate across polls.` (subtext).
+- No QR code: the demo runs on `localhost`, which is unreachable from a phone. In production this would be an App Links / Universal Links intent — document in the README.
 
 ## Seed data
 
