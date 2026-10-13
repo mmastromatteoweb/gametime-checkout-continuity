@@ -1,0 +1,213 @@
+---
+import type { Session } from '@checkout/types';
+
+type Props = { session: Session; apiBaseUrl: string };
+const { session, apiBaseUrl } = Astro.props as Props;
+---
+
+<div
+	id="checkout-root"
+	data-session-id={session.id}
+	data-api-base={apiBaseUrl}
+	data-initial-state={session.state}
+	data-initial-version={String(session.version)}
+	data-completion-token={session.completionToken ?? ''}
+	hidden
+></div>
+
+<script>
+	import {
+		SessionClient,
+		Poller,
+		Countdown,
+		newIdempotencyKey,
+		HttpError,
+	} from '@checkout/client';
+	import type { Session } from '@checkout/types';
+
+	const COUNTDOWN_URGENT_MS = 60_000;
+
+	const countdowns: Countdown[] = [];
+
+	function renderCountdownDisplay(el: HTMLElement, display: HTMLTimeElement, ms: number) {
+		const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+		const mm = Math.floor(totalSeconds / 60);
+		const ss = String(totalSeconds % 60).padStart(2, '0');
+		display.textContent = `${mm}:${ss}`;
+		if (ms <= COUNTDOWN_URGENT_MS && ms > 0) {
+			el.classList.add('text-amber-200');
+		} else {
+			el.classList.remove('text-amber-200');
+		}
+	}
+
+	const warningBanner = document.querySelector<HTMLElement>('[data-countdown-banner]');
+	const warningValue = document.querySelector<HTMLElement>('[data-countdown-banner-value]');
+
+	for (const el of document.querySelectorAll<HTMLElement>('[data-countdown]')) {
+		const display = el.querySelector<HTMLTimeElement>('[data-countdown-display]');
+		const expiresAt = el.dataset.expiresAt;
+		if (!display || !expiresAt) continue;
+		const render = (ms: number) => {
+			renderCountdownDisplay(el, display, ms);
+			if (warningBanner && warningValue) {
+				if (ms > 0 && ms <= COUNTDOWN_URGENT_MS) {
+					const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+					const mm = Math.floor(totalSeconds / 60);
+					const ss = String(totalSeconds % 60).padStart(2, '0');
+					warningValue.textContent = `${mm}:${ss}`;
+					warningBanner.hidden = false;
+				} else {
+					warningBanner.hidden = true;
+				}
+			}
+		};
+		const c = new Countdown({
+			expiresAt,
+			onTick: render,
+			onExpired: () => document.dispatchEvent(new CustomEvent('session:expired')),
+		});
+		c.start();
+		countdowns.push(c);
+	}
+
+	// Click-to-copy on the mobile-URL button.
+	for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-copy-link]')) {
+		const url = btn.dataset.mobileUrl;
+		if (!url) continue;
+		btn.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(url);
+				const prev = btn.textContent;
+				btn.textContent = 'Copied';
+				setTimeout(() => {
+					btn.textContent = prev;
+				}, 1500);
+			} catch {
+				/* Clipboard API not available — leave as-is. */
+			}
+		});
+	}
+
+	const root = document.getElementById('checkout-root');
+	if (root) {
+		const sessionId = root.dataset.sessionId!;
+		const apiBaseUrl = root.dataset.apiBase!;
+		let currentVersion = Number(root.dataset.initialVersion ?? '1');
+		let currentToken = root.dataset.completionToken || null;
+		let currentState = root.dataset.initialState as Session['state'];
+
+		const client = new SessionClient({ baseUrl: apiBaseUrl });
+
+		const stateContainer = document.querySelector<HTMLElement>('[data-state-container]');
+		const cta = document.querySelector<HTMLButtonElement>('[data-cta]');
+		const acceptBtn = document.querySelector<HTMLButtonElement>('[data-accept-price]');
+		const degradedBanner = document.querySelector<HTMLElement>('[data-degraded-banner]');
+		const errorLine = document.querySelector<HTMLElement>('[data-error-line]');
+
+		function ctaLabel(state: Session['state'], current: number): string {
+			switch (state) {
+				case 'price_changed':
+					return 'Accept new price';
+				case 'payment_pending':
+					return 'Processing…';
+				case 'failed':
+					return 'Try again';
+				case 'completed':
+					return 'Completed';
+				case 'expired':
+					return 'Hold expired';
+				default:
+					return `Confirm & Pay $${current.toFixed(2)}`;
+			}
+		}
+
+		function setState(session: Session) {
+			currentVersion = session.version;
+			currentToken = session.completionToken;
+			currentState = session.state;
+			if (stateContainer) stateContainer.dataset.state = session.state;
+			if (cta) {
+				cta.disabled = session.state !== 'active';
+				cta.textContent = ctaLabel(session.state, session.currentPrice);
+			}
+			if (acceptBtn) acceptBtn.hidden = session.state !== 'price_changed';
+			if (errorLine) errorLine.textContent = session.lastError ?? '';
+			for (const c of countdowns) c.reconcile(session.expiresAt);
+		}
+
+		cta?.addEventListener('click', async () => {
+			if (currentState !== 'active' || !currentToken) return;
+			const prevLabel = cta.textContent;
+			if (stateContainer) stateContainer.dataset.state = 'payment_pending';
+			cta.disabled = true;
+			cta.textContent = 'Processing…';
+			try {
+				const key = newIdempotencyKey();
+				const result = await client.complete(
+					sessionId,
+					currentVersion,
+					{ completionToken: currentToken },
+					key,
+				);
+				setState(result.session);
+			} catch (err) {
+				if (
+					err instanceof HttpError &&
+					err.body &&
+					typeof err.body === 'object' &&
+					'current' in err.body
+				) {
+					setState((err.body as { current: Session }).current);
+				} else {
+					if (stateContainer) stateContainer.dataset.state = currentState;
+					if (errorLine) errorLine.textContent = 'Network error. Try again.';
+					cta.disabled = false;
+					if (cta.textContent === 'Processing…') cta.textContent = prevLabel ?? 'Confirm & Pay';
+				}
+			}
+		});
+
+		acceptBtn?.addEventListener('click', async () => {
+			try {
+				const session = await client.acceptPrice(sessionId, currentVersion);
+				setState(session);
+			} catch (err) {
+				if (
+					err instanceof HttpError &&
+					err.body &&
+					typeof err.body === 'object' &&
+					'current' in err.body
+				) {
+					setState((err.body as { current: Session }).current);
+				}
+			}
+		});
+
+		const poller = new Poller<Session>({
+			fetchFn: () => client.getSession(sessionId),
+			onResult: setState,
+			onDegraded: () => {
+				if (degradedBanner) degradedBanner.hidden = false;
+			},
+			intervalMs: 5000,
+		});
+		poller.start();
+
+		document.addEventListener('visibilitychange', () => {
+			if (document.hidden) poller.pause();
+			else {
+				poller.resume();
+				if (degradedBanner) degradedBanner.hidden = true;
+			}
+		});
+
+		document.addEventListener('session:expired', () => {
+			if (stateContainer) stateContainer.dataset.state = 'expired';
+			if (cta) {
+				cta.disabled = true;
+				cta.textContent = 'Hold expired';
+			}
+		});
+	}
+</script>

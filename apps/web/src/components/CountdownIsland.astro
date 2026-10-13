@@ -1,0 +1,26 @@
+---
+import type { Session } from '@checkout/types';
+
+type Props = { session: Session };
+const { session } = Astro.props as Props;
+const remainingMs = Math.max(0, Date.parse(session.expiresAt) - Date.now());
+const totalSeconds = Math.floor(remainingMs / 1000);
+const mm = Math.floor(totalSeconds / 60);
+const ss = String(totalSeconds % 60).padStart(2, '0');
+---
+
+<div
+	class="inline-flex items-baseline gap-2 rounded-full border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm"
+	data-countdown
+	data-expires-at={session.expiresAt}
+>
+	<span class="text-neutral-400">Hold expires in</span>
+	<time
+		datetime={session.expiresAt}
+		data-countdown-display
+		aria-live="polite"
+		class="tabular-nums text-base font-semibold text-neutral-100"
+	>
+		{mm}:{ss}
+	</time>
+</div>
