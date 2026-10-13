@@ -58,8 +58,15 @@ Use the `workspace:*` protocol in every internal dependency:
 
 - One `tsconfig.base.json` at the root with `strict: true`, `moduleResolution: "bundler"`, `target: "ES2022"`.
 - Each package has its own `tsconfig.json` that extends the base and sets its `outDir` / `rootDir`.
-- Use TS project references so `tsc -b` builds packages in dependency order.
 - Packages export via `exports` field in `package.json`, not via `main` only — avoids subpath import pain.
+
+### Why no project references / composite
+
+`@checkout/types` and `@checkout/client` are **source-exported** — their `package.json` main/types/exports point at `./src/index.ts`, not at a built `./dist/*.d.ts`. This keeps dev friction low (changes propagate without a build step).
+
+Source-exported packages are incompatible with TypeScript project references, because `references` requires `composite: true` on the referenced project, and `composite: true` requires the referenced project to have been built. If you add `references` to `tsconfig.json`, you'll hit `TS6305` ("output file has not been built from source file") or `TS6306` ("referenced project must have setting composite: true").
+
+Dep direction is enforced by `package.json` dependencies and pnpm's workspace topology. `pnpm -r --parallel typecheck` handles the ordering.
 
 ## Scripts
 
@@ -95,7 +102,7 @@ import { cors } from 'hono/cors';
 app.use('*', cors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:4321', credentials: true }));
 ```
 
-Do not use `origin: '*'` with credentials — some fetch calls will send cookies in a future auth iteration.
+Do not use `origin: '*'` with `credentials: true` — the combination is rejected by browsers.
 
 ## What does not belong in the root
 
