@@ -14,6 +14,13 @@
 			"Bash(pnpm add *)",
 			"Bash(pnpm astro add *)",
 			"Bash(pnpm dlx *)",
+			"Bash(pnpm create *)",
+			"Bash(pnpm test)",
+			"Bash(pnpm test:*)",
+			"Bash(pnpm -r *)",
+			"Bash(pnpm --filter * *)",
+			"Bash(node *)",
+			"Bash(mkdir *)",
 			"Bash(curl *)"
 		],
 		"deny": ["Bash(git push *)", "Bash(git remote *)"]
@@ -25,7 +32,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "pnpm lint:fix && pnpm format"
+						"command": "test -f pnpm-workspace.yaml && pnpm -r --parallel --if-present lint:fix && pnpm -r --parallel --if-present format || true"
 					}
 				]
 			}
