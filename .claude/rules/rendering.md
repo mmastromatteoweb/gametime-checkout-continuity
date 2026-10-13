@@ -19,7 +19,7 @@ The rule of thumb: **if a crawler disabled JS doesn't see the fan what they're b
 
 ## Astro
 
-- `output: 'hybrid'`, `adapter: node({ mode: 'standalone' })`.
+- Astro 5 with `output: 'server'`, `adapter: node({ mode: 'standalone' })`. (`output: 'hybrid'` was removed in Astro 5 — `'server'` is the modern equivalent; opt into static per-page via `export const prerender = true`.)
 - **No `prerender` export on any page in this app.** Sessions are per-fan; there is nothing static to pre-build.
 - `/checkout/:id` and `/m/checkout/:id` fetch the session in frontmatter via `@checkout/client`, server-side, and pass the snapshot to islands as props.
 - Fetch errors (404, 410) are handled in frontmatter and routed to the matching state UI — not thrown.
@@ -39,12 +39,14 @@ No full-page hydration. No framework runtime beyond what the islands import.
 ```js
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	output: 'hybrid',
+	output: 'server',
 	adapter: node({ mode: 'standalone' }),
-	integrations: [tailwind()],
+	vite: {
+		plugins: [tailwindcss()],
+	},
 });
 ```
 

@@ -11,7 +11,7 @@ The contract is in `rules/state-model.md`, `rules/api.md`, and `rules/resilience
 Create the monorepo per `rules/monorepo.md`.
 
 - Root `package.json` with `pnpm-workspace.yaml`
-- `apps/web` (Astro, hybrid, Node adapter, Tailwind v4)
+- `apps/web` (Astro 5, `output: 'server'`, `@astrojs/node` standalone, Tailwind v4 via `@tailwindcss/vite`)
 - `apps/api` (Hono, Node adapter, Vitest)
 - `packages/types` (TS-only, exports from `rules/state-model.md`)
 - `packages/client` (TS-only, framework-agnostic)
