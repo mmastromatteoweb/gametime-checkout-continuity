@@ -1,10 +1,10 @@
 import { DefaultInventorySource } from './inventory.js';
-import { DefaultPaymentGateway } from './payment.js';
+import { DefaultPaymentGateway, type PaymentGateway } from './payment.js';
 import { DefaultPriceOracle } from './pricing.js';
 import { seedDefault } from './seed.js';
 
 export type Stubs = {
-	payment: DefaultPaymentGateway;
+	payment: PaymentGateway;
 	inventory: DefaultInventorySource;
 	pricing: DefaultPriceOracle;
 };
